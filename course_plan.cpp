@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <cstddef>
 #include <fstream>
 #include <iostream>
 #include <queue>
@@ -86,6 +87,8 @@ public:
     // Kahn's algorithm. If not all vertices are removed, residual vertices
     // are in or depend on a cycle; report an actual directed cycle by DFS.
     bool topologicalOrder(std::vector<int>& order, std::vector<int>& cycle) const {
+        order.clear();
+        cycle.clear();
         std::vector<int> indegree(courses.size(), 0);
         for (const auto& out : edges) for (int v : out) ++indegree[v];
         std::queue<int> q;
@@ -171,31 +174,67 @@ public:
         }
     }
 
-    bool load(const std::string& path) {
-        std::ifstream in(path);
-        if (!in) return false;
+    bool load(const std::string& path, std::string* error = nullptr) {
+        auto fail = [error](std::size_t line, const std::string& reason) {
+            if (error) {
+                *error = line == 0 ? reason : "第 " + std::to_string(line) + " 行：" + reason;
+            }
+            return false;
+        };
+
+        std::ifstream in(path, std::ios::binary);
+        if (!in) return fail(0, "无法打开文件");
+
         CoursePlan temp;
+        struct PendingEdge {
+            std::string before;
+            std::string after;
+            std::size_t line;
+        };
+        std::vector<PendingEdge> pendingEdges;
         std::string line;
-        // UTF-8 whitespace-separated format: COURSE id name credits / EDGE id id
+        std::size_t lineNo = 0;
+
+        // Edges are deferred so a file may list them before its course records.
         while (std::getline(in, line)) {
-            if (line.empty() || line[0] == '#') continue;
-            std::istringstream ss(line);
-            std::string type, a, b; int credits;
-            ss >> type;
+            ++lineNo;
+            if (lineNo == 1 && line.size() >= 3 &&
+                static_cast<unsigned char>(line[0]) == 0xEF &&
+                static_cast<unsigned char>(line[1]) == 0xBB &&
+                static_cast<unsigned char>(line[2]) == 0xBF) {
+                line.erase(0, 3); // Accept the UTF-8 BOM written by the web export.
+            }
+
+            const auto first = line.find_first_not_of(" \t\r\n");
+            if (first == std::string::npos || line[first] == '#') continue;
+
+            std::istringstream ss(line.substr(first));
+            std::string type, a, b, extra;
+            if (!(ss >> type)) continue;
+
             if (type == "COURSE") {
-                if (!(ss >> a >> b >> credits) || !temp.addCourse({a, b, credits})) return false;
+                int credits = 0;
+                if (!(ss >> a >> b >> credits) || (ss >> extra))
+                    return fail(lineNo, "课程格式应为 COURSE 编号 名称 学分");
+                if (!temp.addCourse({a, b, credits}))
+                    return fail(lineNo, "课程编号重复，或课程字段无效");
             } else if (type == "EDGE") {
-                if (!(ss >> a >> b)) return false;
-                // Defer edge insertion until every course has been read.
-            } else return false;
+                if (!(ss >> a >> b) || (ss >> extra))
+                    return fail(lineNo, "先修关系格式应为 EDGE 先修课编号 后续课编号");
+                pendingEdges.push_back({a, b, lineNo});
+            } else {
+                return fail(lineNo, "无法识别记录类型：" + type);
+            }
         }
-        in.clear(); in.seekg(0);
-        while (std::getline(in, line)) {
-            std::istringstream ss(line); std::string type, a, b;
-            ss >> type;
-            if (type == "EDGE" && (!(ss >> a >> b) || !temp.addPrerequisite(a, b))) return false;
+        if (in.bad()) return fail(lineNo, "读取文件时发生错误");
+
+        for (const auto& edge : pendingEdges) {
+            if (!temp.addPrerequisite(edge.before, edge.after))
+                return fail(edge.line, "先修关系引用了不存在的课程，或课程不能依赖自身");
         }
+
         *this = std::move(temp);
+        if (error) error->clear();
         return true;
     }
 
@@ -219,7 +258,9 @@ int main(int argc, char** argv) {
 #endif
     CoursePlan plan;
     std::string file = argc > 1 ? argv[1] : "data/chain.txt";
-    if (!plan.load(file)) std::cout << "未能读取 " << file << "，从空课程表开始。\n";
+    std::string loadError;
+    if (!plan.load(file, &loadError))
+        std::cout << "未能读取 " << file << "：" << loadError << "。从空课程表开始。\n";
     for (;;) {
         std::cout << "\n=== 课程先修与教学计划系统 ===\n"
                   << "1. 显示课程与约束  2. 拓扑排序  3. 学期计划\n"

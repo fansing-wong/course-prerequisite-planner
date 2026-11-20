@@ -1,70 +1,74 @@
-# Course Prerequisite Planner
+# 课程先修关系与教学计划系统
 
-课程先修关系与拓扑排序教学计划系统。This project demonstrates an AOV graph, topological sorting, cycle reporting, and semester planning in C++17, with a standalone Chinese web interface.
+一个用于演示 **AOV 网、拓扑排序、环路检测和学期计划生成** 的数据结构与算法课程设计项目。项目包含 C++17 命令行程序和一个无需服务器、可直接在浏览器打开的中文界面。
 
-## 功能
+## 项目亮点
 
-- 用有向边 `A -> B` 表示课程 A 是课程 B 的直接先修课。
-- 用邻接表维护课程图；Kahn 算法输出合法修读顺序。
-- 当图中有环时，用 DFS 找出并显示一条闭合冲突路径。
-- 按先修层次生成学期计划，并可设置每学期学分上限（`0` 表示不限制）。学分上限采用贪心安排，不保证总学期数最少。
-- 维护课程和先修约束；命令行程序支持文本文件读取与保存。
-- 网页版提供课程关系图、搜索、增删改、文件导入导出和浏览器本地保存。网页无需服务器或第三方 JavaScript 库。
+- 用邻接表表示课程先修关系：边 `A → B` 表示完成课程 A 后才能修读课程 B。
+- 使用 Kahn 算法生成合法修读顺序；发现环路时，用 DFS 给出一条可定位的冲突路径。
+- 按先修层次生成学期计划，可设置每学期学分上限，并标明无法安排的课程。
+- 支持课程和先修约束的增删改、文本数据导入导出，以及五类可复现示例。
+- C++ 与网页共用 `COURSE` / `EDGE` 文本数据格式；网页导出的 UTF-8 BOM 文件也可由 C++ 程序读取。
+- GitHub Actions 在 Windows 和 Ubuntu 上构建 C++ 程序。
 
-## 快速开始：网页
+## 快速体验
 
-用浏览器打开 [`index.html`](index.html)。选择示例图即可查看拓扑顺序、冲突环和学期计划。课程及约束编辑会保存在当前浏览器；使用“导出”可下载数据文件备份。
+### 浏览器界面
 
-## 构建和运行：C++17
+直接用浏览器打开 [`index.html`](index.html)，选择示例后即可查看课程图、合法顺序、环路和学期计划。编辑内容保存在**当前浏览器的本地存储**中；需要备份或换设备时，请使用“导出”。本项目没有服务器或账号同步功能。
 
-### 环境
+推荐演示顺序见 [`docs/DEMO_GUIDE.md`](docs/DEMO_GUIDE.md)。
 
-- C++17 编译器：GCC、Clang 或 MSVC。
-- 使用 CMake 预设时需要 CMake 3.21 或更新版本及 Ninja。
-- 仓库不包含编译器、构建目录或预编译程序；请安装本机工具链后构建。
+### C++ 命令行程序
 
-### CMake（推荐）
+环境：C++17 编译器；使用 CMake 预设时还需要 CMake 3.21+ 和 Ninja。
 
 ```powershell
 cmake --preset default
 cmake --build --preset default
-```
-
-运行稀疏图样例：
-
-```powershell
 ./build/course_plan.exe ./data/sparse.txt
 ```
 
-在 Linux 或 macOS 上，程序通常位于 `build/course_plan`：
+Linux / macOS：
 
 ```sh
+cmake --preset default
+cmake --build --preset default
 ./build/course_plan ./data/sparse.txt
 ```
 
-也可以从项目目录直接编译。Windows 下建议使用 PowerShell：
+也可在项目根目录使用 GCC 直接编译：
 
 ```powershell
 g++ -std=c++17 -Wall -Wextra -pedantic -finput-charset=UTF-8 -fexec-charset=UTF-8 .\course_plan.cpp -o .\course_plan.exe
 ```
 
-项目附带的 [`run-course-plan.cmd`](run-course-plan.cmd) 会尝试用系统 `g++` 编译后运行；如果没有 `g++`，请先安装 C++ 工具链或按上面的 CMake 步骤构建。
+若启动时没有指定数据文件，C++ 程序默认读取 `data/chain.txt`；Windows 批处理启动器默认读取 `data/sparse.txt`。
 
-### 示例数据
+## 演示数据
 
-| 文件 | 内容 |
+| 文件 | 演示内容 |
 | --- | --- |
-| `data/no_constraints.txt` | 无先修边，课程可在第一学期并行安排 |
-| `data/chain.txt` | 四门课程形成一条先修链 |
-| `data/sparse.txt` | 稀疏 DAG，含独立课程与多条依赖 |
-| `data/dense_dag.txt` | 稠密 DAG，每门后续课程依赖此前课程 |
-| `data/cycle.txt` | 有向环 `C02 → C03 → C04 → C02`，用于观察冲突报告 |
+| `data/no_constraints.txt` | 没有先修边，所有课程都可从第一学期开始 |
+| `data/chain.txt` | 四门课程组成先修链，展示逐层开课 |
+| `data/sparse.txt` | 稀疏 DAG，包含独立课程和多个可并行课程 |
+| `data/dense_dag.txt` | 稠密 DAG，展示多条依赖同时约束修读顺序 |
+| `data/cycle.txt` | `C02 → C03 → C04 → C02`，展示环路定位与冲突说明 |
 
-启动时可传入任一样例文件，例如 `./build/course_plan.exe data/cycle.txt`。不传路径时，C++ 程序默认读取 `data/chain.txt`；批处理启动器默认读取 `data/sparse.txt`。
+## 算法设计
 
-## 数据格式
+| 功能 | 方法 | 复杂度 |
+| --- | --- | --- |
+| 合法修读顺序 | Kahn 拓扑排序 | `O(V + E)` |
+| 冲突环路路径 | 在 Kahn 未处理的子图上进行 DFS | `O(V + E)` |
+| 课程依赖存储 | 邻接表 | `O(V + E)` 空间 |
+| 课程编号查找 | 当前为顺序查找 | `O(V)` |
 
-文本采用 UTF-8 编码，空行和以 `#` 开头的注释行会被忽略。课程名与编号在 C++ 文件格式中均不能包含空白字符：
+其中 `V` 是课程数，`E` 是先修关系数。没有学分上限时，同一拓扑层的课程可以并行安排。设置学分上限后，程序按输入顺序贪心放入课程，**不保证学期数最少或总学分组合最优**。
+
+## 数据文件格式
+
+使用 UTF-8 文本；空行和以 `#` 开头的注释行会被忽略。每条课程记录包含编号、名称和非负整数学分，先修边引用课程编号：
 
 ```text
 COURSE C01 程序设计 4
@@ -72,28 +76,22 @@ COURSE C02 数据结构 4
 EDGE C01 C02
 ```
 
-`COURSE` 行依次为类型、编号、名称和非负整数学分。`EDGE` 行依次为类型、先修课程编号和后续课程编号。网页导出时会将课程名中的空格写成下划线，导入后还原为空格。
+为兼容简洁文本格式，C++ 文件中的课程编号和名称不能含空白字符。网页导出会将名称中的空格写成下划线；若名称本身含下划线，当前格式不能无损区分二者。
 
-## 算法与复杂度
-
-- 邻接表保存实际存在的先修边，空间复杂度为 `O(V + E)`。
-- Kahn 拓扑排序和 DFS 冲突环搜索均为 `O(V + E)` 时间；算法辅助空间为 `O(V)`。
-- 课程编号查找当前为 `O(V)`。
-- 学期计划按 Kahn 层次逐轮安排。加入学分上限后会推迟未能放入本学期的课程，但不会搜索全局最优的学分组合。
-
-## 仓库结构
+## 项目结构
 
 ```text
-course_plan.cpp             C++17 命令行程序
-index.html                  无依赖中文网页界面
-data/                       五类课程图样例
+course_plan.cpp             C++17 命令行程序和 AOV 图模型
+index.html                  独立中文网页演示界面
+data/                       无约束、链式、稀疏、稠密和有环示例
+docs/DEMO_GUIDE.md          演示步骤、算法说明和答辩提示
 CMakeLists.txt              CMake 构建定义
 CMakePresets.json           默认 Ninja 预设
-.github/workflows/build.yml Linux 与 Windows 构建工作流
+.github/workflows/build.yml Windows 与 Ubuntu 构建工作流
 ```
 
-本机下载的编译器、安装包、生成的 `.exe`、构建目录和课程报告不会提交到 GitHub。
+## 当前范围
 
-## 许可证
+这是一个**课程设计演示和个人作品集项目**，不是面向学校生产环境的排课系统。网页数据只保存在本地浏览器；项目没有账号、服务端数据库、权限管理、审计日志或学校排课规则引擎。自动化工作流目前验证的是跨平台构建，不是完整功能测试。
 
-仓库当前尚未指定开源许可证。发布为公开仓库前，请确认是否希望允许他人复制、修改和再发布，并据此添加许可证文件。
+仓库暂未指定许可证。商业或第三方复用前，请先确认代码权利和贡献者授权，并选择适用的许可证或商业授权方式。
