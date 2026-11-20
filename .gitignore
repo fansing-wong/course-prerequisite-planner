@@ -1,0 +1,35 @@
+# Build output and compiler products
+/build/
+/build-*/
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+compile_commands.json
+*.exe
+*.obj
+*.o
+*.pdb
+*.ilk
+
+# Local toolchains and installers (download separately; do not vendor binaries)
+/tools/winlibs/
+/tools/cmake-*-windows-x86_64/
+/tools/*.zip
+/tools/*.msi
+/tools/*.exe
+/tools/*.log
+/tools/LibreOffice/
+/cmake-*.msi
+/cmake-install.log
+
+# Local reports and authoring/render work files
+/report_work/
+/*.docx
+/*.pdf
+
+# Per-user editor settings
+CMakeUserPresets.json
+.vscode/
+.idea/
+Thumbs.db
+Desktop.ini

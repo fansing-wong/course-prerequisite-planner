@@ -1,0 +1,8 @@
+# Chain prerequisites: C01 -> C02 -> C03 -> C04
+COURSE C01 程序设计 4
+COURSE C02 数据结构 4
+COURSE C03 算法设计 3
+COURSE C04 编译原理 3
+EDGE C01 C02
+EDGE C02 C03
+EDGE C03 C04

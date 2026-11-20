@@ -1,0 +1,5 @@
+# No prerequisite edges: all courses can be taken in the first semester.
+COURSE C01 程序设计 4
+COURSE C02 离散数学 3
+COURSE C03 大学英语 2
+COURSE C04 体育 1

@@ -1,0 +1,11 @@
+# Sparse DAG with independent courses and multiple valid topological orders.
+COURSE C01 高等数学 5
+COURSE C02 程序设计 4
+COURSE C03 离散数学 3
+COURSE C04 数据结构 4
+COURSE C05 算法设计 3
+COURSE C06 数据库 3
+EDGE C02 C04
+EDGE C03 C04
+EDGE C04 C05
+EDGE C03 C06

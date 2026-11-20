@@ -1,0 +1,8 @@
+# Cycle: C02 -> C03 -> C04 -> C02. C01 is independent.
+COURSE C01 大学英语 2
+COURSE C02 程序设计 4
+COURSE C03 数据结构 4
+COURSE C04 算法设计 3
+EDGE C02 C03
+EDGE C03 C04
+EDGE C04 C02
