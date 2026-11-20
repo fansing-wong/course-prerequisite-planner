@@ -65,17 +65,20 @@ Kahn 算法能判断“有环”，但剩余未处理的顶点还可能包括受
 
 | 位置 | 作用 |
 | --- | --- |
-| `course_plan.cpp` 的 `CoursePlan` | 课程、邻接表及增删改操作 |
+| `course_plan_core.hpp/.cpp` 的 `CoursePlan` | 课程、邻接表及增删改操作 |
 | `CoursePlan::topologicalOrder` | Kahn 拓扑排序；若失败则用 DFS 找环 |
-| `CoursePlan::showSemesters` | 依先修层次生成学期计划，并应用学分上限 |
+| `CoursePlan::buildSemesters` | 依先修层次生成学期计划，并应用学分上限 |
 | `CoursePlan::load` / `save` | 读取和保存 `COURSE` / `EDGE` 文本格式 |
+| `course_plan.cpp` | 命令行菜单和结果展示，不包含图算法实现 |
 | `index.html` 的 `analyze()` | 网页版拓扑分析和环路定位 |
 | `index.html` 的 `buildSchedule()` | 网页版学期分配 |
 | `index.html` 的 `renderGraph()` | 将课程依赖绘制为 SVG 有向图 |
+| `tests/course_plan_core_tests.cpp` | 核心算法、排课和文件读写的自动化测试 |
 
 ## 四、演示边界
 
 - 当前计划只建模“先修”关系和学分上限，不处理时间表、开课学期、课程容量或毕业审核。
 - 学分上限排课是贪心安排，不保证全局最优。
 - 网页编辑数据保存在本地浏览器，不会自动同步到其他设备。
-- CI 工作流会在 Windows 和 Ubuntu 上构建 C++ 程序；当前仓库尚未配置自动化功能测试。
+- CTest 覆盖 C++ 核心模型、算法和文件读写；网页交互目前仍需人工演示检查。
+- GitHub Actions 会在 Windows 和 Ubuntu 上构建程序并运行 CTest。

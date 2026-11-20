@@ -26,6 +26,7 @@
 ```powershell
 cmake --preset default
 cmake --build --preset default
+ctest --test-dir build --output-on-failure
 ./build/course_plan.exe ./data/sparse.txt
 ```
 
@@ -34,13 +35,14 @@ Linux / macOS：
 ```sh
 cmake --preset default
 cmake --build --preset default
+ctest --test-dir build --output-on-failure
 ./build/course_plan ./data/sparse.txt
 ```
 
 也可在项目根目录使用 GCC 直接编译：
 
 ```powershell
-g++ -std=c++17 -Wall -Wextra -pedantic -finput-charset=UTF-8 -fexec-charset=UTF-8 .\course_plan.cpp -o .\course_plan.exe
+g++ -std=c++17 -Wall -Wextra -pedantic -finput-charset=UTF-8 -fexec-charset=UTF-8 .\course_plan.cpp .\course_plan_core.cpp -o .\course_plan.exe
 ```
 
 若启动时没有指定数据文件，C++ 程序默认读取 `data/chain.txt`；Windows 批处理启动器默认读取 `data/sparse.txt`。
@@ -81,17 +83,19 @@ EDGE C01 C02
 ## 项目结构
 
 ```text
-course_plan.cpp             C++17 命令行程序和 AOV 图模型
+course_plan.cpp             C++17 命令行交互界面
+course_plan_core.hpp/.cpp   可复用的课程图模型、算法和文件读写
+tests/                      无第三方依赖的 CTest 测试程序
 index.html                  独立中文网页演示界面
 data/                       无约束、链式、稀疏、稠密和有环示例
 docs/DEMO_GUIDE.md          演示步骤、算法说明和答辩提示
 CMakeLists.txt              CMake 构建定义
 CMakePresets.json           默认 Ninja 预设
-.github/workflows/build.yml Windows 与 Ubuntu 构建工作流
+.github/workflows/build.yml Windows 与 Ubuntu 构建及测试工作流
 ```
 
 ## 当前范围
 
-这是一个**课程设计演示和个人作品集项目**，不是面向学校生产环境的排课系统。网页数据只保存在本地浏览器；项目没有账号、服务端数据库、权限管理、审计日志或学校排课规则引擎。自动化工作流目前验证的是跨平台构建，不是完整功能测试。
+这是一个**课程设计演示和个人作品集项目**，不是面向学校生产环境的排课系统。网页数据只保存在本地浏览器；项目没有账号、服务端数据库、权限管理、审计日志或学校排课规则引擎。CTest 覆盖 C++ 核心模型、算法和文本文件读写；浏览器界面目前仍需人工演示检查。
 
 仓库暂未指定许可证。商业或第三方复用前，请先确认代码权利和贡献者授权，并选择适用的许可证或商业授权方式。

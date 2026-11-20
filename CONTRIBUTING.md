@@ -15,6 +15,7 @@
 ```sh
 cmake --preset default
 cmake --build --preset default
+ctest --test-dir build --output-on-failure
 ```
 
-提交前请确认构建成功，并检查网页界面在浏览器中能正常加载。当前仓库尚未配置自动化功能测试。
+提交前请确认构建和 CTest 均通过，并检查网页界面在浏览器中能正常加载。CTest 覆盖 C++ 核心模型、算法和文本文件读写；浏览器界面仍需人工检查。
